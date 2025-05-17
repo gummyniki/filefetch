@@ -25,7 +25,7 @@ From [crates.io](https://crates.io/crates/filefetch):
 cargo install filefetch
 ```
 
-*(btw make sure to have crates installed, it's the package manager for rust)*
+*(btw make sure to have cargo installed, it's the package manager for rust)*
 
 
 ## 🧪 Usage
