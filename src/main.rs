@@ -1,4 +1,4 @@
-use sysinfo::{System};
+use sysinfo::System;
 extern crate fs_extra;
 use fs_extra::dir::get_size;
 use std::env;
@@ -43,60 +43,55 @@ fn count_entries_recursively(path: &std::path::Path) -> (usize, usize) {
     (folder_count, file_count)
 }
 
-
 fn main() {
     let cli = Cli::parse();
 
     let mut sys = System::new_all();
     sys.refresh_all();
 
-    let folder_size = get_size(env::current_dir().unwrap()).unwrap();
     let current_dir = env::current_dir().unwrap();
-    let paths = fs::read_dir(&current_dir).unwrap();
-    let paths2 = fs::read_dir(&current_dir).unwrap();
+    let folder_size = get_size(&current_dir).unwrap();
 
-    let mut fileCount = 0;
-    let mut folderCount = 0;
+    // Collect entries once
+    let entries: Vec<_> = fs::read_dir(&current_dir).unwrap().flatten().collect();
 
-        let (folderCount, fileCount) = if cli.recursive {
+    // Count files and folders
+    let (folderCount, fileCount) = if cli.recursive {
         count_entries_recursively(&current_dir)
-        } else {
-            let mut folder_count = 0;
-            let mut file_count = 0;
-            for entry2 in paths2 {
-                let entry2 = entry2.unwrap();
-                let md = metadata(entry2.path()).unwrap();
-                if md.is_dir() {
-                    folder_count += 1;
-                } else {
-                    file_count += 1;
-                }
+    } else {
+        let mut folder_count = 0;
+        let mut file_count = 0;
+        for entry in &entries {
+            let md = metadata(entry.path()).unwrap();
+            if md.is_dir() {
+                folder_count += 1;
+            } else {
+                file_count += 1;
+            }
         }
         (folder_count, file_count)
     };
 
-
+    // Print summary
     if cli.nocolor {
-        println!("📁 Current Directory: {}", env::current_dir().unwrap().display());
+        println!("📁 Current Directory: {}", current_dir.display());
         println!("📦 Folder Size: {:.2} MB", folder_size as f64 / 1024.0 / 1024.0);
         println!("📦 Number of entries: 📁 {} Folders, 📄 {} Files", folderCount, fileCount);
         println!("📄 Files:");
     } else {
-        println!("📁 Current Directory: {}", env::current_dir().unwrap().display().to_string().magenta());
+        println!("📁 Current Directory: {}", current_dir.display().to_string().magenta());
         println!("📦 Folder Size: {:.2} MB", (folder_size as f64 / 1024.0 / 1024.0).to_string().yellow());
         println!("📦 Number of entries: 📁 {} Folders, 📄 {} Files", folderCount.to_string().cyan(), fileCount.to_string().cyan());
         println!("📄 Files:");
     }
 
-    for entry in paths {
-        let entry = entry.unwrap();
+    // List each entry with size (folders optionally with size)
+    for entry in entries {
         let path = entry.path();
-
         let md = metadata(&path).unwrap();
 
         if md.is_dir() {
             if cli.folder_size {
-                // Calculate folder size if the flag is set
                 let folder_size_bytes = get_size(&path).unwrap_or(0);
                 let folder_size_mb = folder_size_bytes as f64 / 1024.0 / 1024.0;
 
@@ -106,7 +101,6 @@ fn main() {
                     println!("•  📁 {}       {:.2} MB", path.display().to_string().blue().bold(), folder_size_mb);
                 }
             } else {
-                // Old behavior: no size for folders
                 if cli.nocolor {
                     println!("•  📁 {}       N/A", path.display());
                 } else {
@@ -114,12 +108,11 @@ fn main() {
                 }
             }
         } else {
-            // Files: always show size in KB
-            let sizekb = (md.len() as f64) / 1024.0;
+            let size_kb = md.len() as f64 / 1024.0;
             if cli.nocolor {
-                println!("•  📄 {}       {:.2} KB", path.display(), sizekb);
+                println!("•  📄 {}       {:.2} KB", path.display(), size_kb);
             } else {
-                println!("•  📄 {}       {:.2} KB", path.display().to_string().green(), sizekb);
+                println!("•  📄 {}       {:.2} KB", path.display().to_string().green(), size_kb);
             }
         }
     }
