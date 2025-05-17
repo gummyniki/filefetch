@@ -3,8 +3,6 @@
 **A simple Rust CLI tool to display information about the current folder.**  
 Shows the total size, number of files and folders, and prints each entry with a neat emoji.
 
-![Demo](https://raw.githubusercontent.com/yourusername/filefetch/main/assets/demo.gif) <!-- optional -->
-
 ---
 
 ## 🚀 Features
@@ -20,6 +18,7 @@ Shows the total size, number of files and folders, and prints each entry with a 
 ## 🛠️ Installation
 
 From [crates.io](https://crates.io/crates/filefetch):
+From [AUR](https://aur.archlinux.org/packages/filefetch):
 
 ```bash
 cargo install filefetch
@@ -43,7 +42,8 @@ filefetch
 
     --nocolor – disable colored output
 
-    --recursive – count subdirectories in the total file count
+    --recursive – include files and folders inside subdirectories
+
 
     --folder-size - shows folder sizes *(will take longer)*
 
