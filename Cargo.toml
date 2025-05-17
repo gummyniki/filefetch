@@ -3,6 +3,13 @@ name = "filefetch"
 version = "0.1.0"
 edition = "2021"
 authors = ["gummyniki <github.com/gummyniki>"]
+description = "A folder info fetcher for the terminal"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/gummyniki/filefetch"
+homepage = "https://github.com/gummyniki/filefetch"
+keywords = ["terminal", "file", "directory", "info"]
+categories = ["command-line-utilities", "system"]
+readme = "README.md"
 
 [dependencies]
 sysinfo = "0.30"

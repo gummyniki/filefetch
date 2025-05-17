@@ -1,0 +1,14 @@
+target/
+.git/
+.gitignore
+Cargo.lock
+*.rs.bk
+*.log
+*.tmp
+.idea/
+.vscode/
+*.exe
+*.dll
+*.so
+*.dylib
+.DS_Store
