@@ -37,7 +37,9 @@ filefetch
 
     --nocolor – disable colored output
 
-    --include-subdirs – count subdirectories in the total file count
+    --recursive – count subdirectories in the total file count
+
+    --folder-size - shows folder sizes *(will take longer)*
 
 
 # 📂 Example Output
