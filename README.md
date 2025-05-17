@@ -25,6 +25,12 @@ From [crates.io](https://crates.io/crates/filefetch):
 cargo install filefetch
 ```
 
+### for Arch Linux
+
+```bash
+yay -S filefetch
+```
+
 *(btw make sure to have cargo installed, it's the package manager for rust)*
 
 
