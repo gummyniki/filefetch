@@ -18,13 +18,15 @@ Shows the total size, number of files and folders, and prints each entry with a 
 ## 🛠️ Installation
 
 From [crates.io](https://crates.io/crates/filefetch):
-From [AUR](https://aur.archlinux.org/packages/filefetch):
+
 
 ```bash
 cargo install filefetch
 ```
 
 ### for Arch Linux
+
+From [AUR](https://aur.archlinux.org/packages/filefetch):
 
 ```bash
 yay -S filefetch
