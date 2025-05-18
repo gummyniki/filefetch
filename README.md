@@ -32,7 +32,7 @@ From [AUR](https://aur.archlinux.org/packages/filefetch):
 yay -S filefetch
 ```
 
-*(btw make sure to have cargo installed, it's the package manager for rust)*
+*(btw if you're installing from crates.io make sure to have cargo installed, it's the package manager for rust)*
 
 
 ## 🧪 Usage
