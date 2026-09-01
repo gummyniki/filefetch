@@ -55,10 +55,7 @@ fn main() {
     let paths = fs::read_dir(&current_dir).unwrap_or_else(|_| fs::read_dir(".").unwrap());
     let paths2 = fs::read_dir(&current_dir).unwrap_or_else(|_| fs::read_dir(".").unwrap());
 
-    let mut fileCount = 0;
-    let mut folderCount = 0;
-
-        let (folderCount, fileCount) = if cli.recursive {
+        let (folder_count, file_count) = if cli.recursive {
         count_entries_recursively(&current_dir)
         } else {
             let mut folder_count = 0;
@@ -85,12 +82,12 @@ fn main() {
     if cli.nocolor {
         println!("📁 Current Directory: {}", current_dir.display());
         println!("📦 Folder Size: {:.2} MB", folder_size as f64 / 1024.0 / 1024.0);
-        println!("📦 Number of entries: 📁 {} Folders, 📄 {} Files", folderCount, fileCount);
+        println!("📦 Number of entries: 📁 {} Folders, 📄 {} Files", folder_count, file_count);
         println!("📄 Files:");
     } else {
         println!("📁 Current Directory: {}", current_dir.display().to_string().magenta());
         println!("📦 Folder Size: {:.2} MB", (folder_size as f64 / 1024.0 / 1024.0).to_string().yellow());
-        println!("📦 Number of entries: 📁 {} Folders, 📄 {} Files", folderCount.to_string().cyan(), fileCount.to_string().cyan());
+        println!("📦 Number of entries: 📁 {} Folders, 📄 {} Files", folder_count.to_string().cyan(), file_count.to_string().cyan());
         println!("📄 Files:");
     }
 
