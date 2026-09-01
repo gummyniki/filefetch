@@ -5,7 +5,7 @@ use std::env;
 use std::fs;
 use std::fs::metadata;
 use colored::*;
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 
 #[derive(Parser)]
 #[command(name = "filefetch")]
@@ -20,6 +20,18 @@ struct Cli {
 
     #[arg(long, help = "List folder sizes (will take longer)")]
     folder_size: bool,
+
+    #[arg(long, value_enum, default_value = "none", help = "Sort entries by name or size")]
+    sort: SortOrder,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+enum SortOrder {
+    None,
+    NameAsc,
+    NameDesc,
+    SizeAsc,
+    SizeDesc,
 }
 
 fn count_entries_recursively(path: &std::path::Path) -> (usize, usize) {
@@ -53,27 +65,26 @@ fn main() {
     let folder_size = get_size(env::current_dir().unwrap()).unwrap_or(0);
     let current_dir = env::current_dir().unwrap_or_default();
     let paths = fs::read_dir(&current_dir).unwrap_or_else(|_| fs::read_dir(".").unwrap());
-    let paths2 = fs::read_dir(&current_dir).unwrap_or_else(|_| fs::read_dir(".").unwrap());
 
         let (folder_count, file_count) = if cli.recursive {
         count_entries_recursively(&current_dir)
-        } else {
-            let mut folder_count = 0;
-            let mut file_count = 0;
-            for entry2 in paths2 {
-                let entry2 = match entry2 {
-                    Ok(e) => e,
-                    Err(_) => continue,
-                };
-                let md = match metadata(entry2.path()) {
-                    Ok(m) => m,
-                    Err(_) => continue,
-                };
-                if md.is_dir() {
-                    folder_count += 1;
-                } else {
-                    file_count += 1;
-                }
+    } else {
+        let mut folder_count = 0;
+        let mut file_count = 0;
+        for entry2 in fs::read_dir(&current_dir).unwrap_or_else(|_| fs::read_dir(".").unwrap()) {
+            let entry2 = match entry2 {
+                Ok(e) => e,
+                Err(_) => continue,
+            };
+            let md = match metadata(entry2.path()) {
+                Ok(m) => m,
+                Err(_) => continue,
+            };
+            if md.is_dir() {
+                folder_count += 1;
+            } else {
+                file_count += 1;
+            }
         }
         (folder_count, file_count)
     };
@@ -91,6 +102,8 @@ fn main() {
         println!("📄 Files:");
     }
 
+    let mut entries: Vec<(std::path::PathBuf, u64, bool)> = Vec::new();
+
     for entry in paths {
         let entry = match entry {
             Ok(e) => e,
@@ -103,19 +116,45 @@ fn main() {
             Err(_) => continue,
         };
 
-        if md.is_dir() {
+        let size = if md.is_dir() {
             if cli.folder_size {
-                // Calculate folder size if the flag is set
-                let folder_size_bytes = get_size(&path).unwrap_or(0);
-                let folder_size_mb = folder_size_bytes as f64 / 1024.0 / 1024.0;
+                get_size(&path).unwrap_or(0)
+            } else {
+                0
+            }
+        } else {
+            md.len()
+        };
 
+        entries.push((path, size, md.is_dir()));
+    }
+
+    match cli.sort {
+        SortOrder::NameAsc => {
+            entries.sort_by(|a, b| a.0.file_name().cmp(&b.0.file_name()));
+        }
+        SortOrder::NameDesc => {
+            entries.sort_by(|a, b| b.0.file_name().cmp(&a.0.file_name()));
+        }
+        SortOrder::SizeAsc => {
+            entries.sort_by_key(|a| a.1);
+        }
+        SortOrder::SizeDesc => {
+            entries.sort_by_key(|b| std::cmp::Reverse(b.1));
+        }
+        SortOrder::None => {}
+    }
+
+    for (path, size, is_dir) in entries {
+        if is_dir {
+            if cli.folder_size {
+                let folder_size_mb = size as f64 / 1024.0 / 1024.0;
                 if cli.nocolor {
                     println!("•  📁 {}       {:.2} MB", path.display(), folder_size_mb);
                 } else {
                     println!("•  📁 {}       {:.2} MB", path.display().to_string().blue().bold(), folder_size_mb);
                 }
             } else {
-                // Old behavior: no size for folders
                 if cli.nocolor {
                     println!("•  📁 {}       N/A", path.display());
                 } else {
@@ -123,8 +162,7 @@ fn main() {
                 }
             }
         } else {
-            // Files: always show size in KB
-            let sizekb = (md.len() as f64) / 1024.0;
+            let sizekb = size as f64 / 1024.0;
             if cli.nocolor {
                 println!("•  📄 {}       {:.2} KB", path.display(), sizekb);
             } else {
