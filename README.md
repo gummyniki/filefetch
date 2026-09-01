@@ -11,7 +11,8 @@ Shows the total size, number of files and folders, and prints each entry with a 
 - 📦 Displays folder size in MB
 - 🔢 Counts files and optionally subdirectories
 - 📄 Lists files and folders with colorful output
-- 🎛️ Optional flags for no-color or subdirectory counting
+- 🎛️ Optional flags for no-color, subdirectory counting, and sorting
+- 🔃 Sort entries by name or size (ascending or descending)
 
 ---
 
@@ -46,8 +47,9 @@ filefetch
 
     --recursive – include files and folders inside subdirectories
 
-
     --folder-size - shows folder sizes *(will take longer)*
+
+    --sort - sort entries by name or size *(none, name-asc, name-desc, size-asc, size-desc)*
 
 
 # 📂 Example Output
