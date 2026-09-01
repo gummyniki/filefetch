@@ -10,7 +10,7 @@ use clap::Parser;
 #[derive(Parser)]
 #[command(name = "filefetch")]
 #[command(about = "A folder info fetcher", long_about = None)]
-#[command(version = "0.1.0")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
 struct Cli {
     #[arg(long)]
     nocolor: bool,
@@ -50,22 +50,25 @@ fn main() {
     let mut sys = System::new_all();
     sys.refresh_all();
 
-    let folder_size = get_size(env::current_dir().unwrap()).unwrap();
-    let current_dir = env::current_dir().unwrap();
-    let paths = fs::read_dir(&current_dir).unwrap();
-    let paths2 = fs::read_dir(&current_dir).unwrap();
+    let folder_size = get_size(env::current_dir().unwrap()).unwrap_or(0);
+    let current_dir = env::current_dir().unwrap_or_default();
+    let paths = fs::read_dir(&current_dir).unwrap_or_else(|_| fs::read_dir(".").unwrap());
+    let paths2 = fs::read_dir(&current_dir).unwrap_or_else(|_| fs::read_dir(".").unwrap());
 
-    let mut fileCount = 0;
-    let mut folderCount = 0;
-
-        let (folderCount, fileCount) = if cli.recursive {
+        let (folder_count, file_count) = if cli.recursive {
         count_entries_recursively(&current_dir)
         } else {
             let mut folder_count = 0;
             let mut file_count = 0;
             for entry2 in paths2 {
-                let entry2 = entry2.unwrap();
-                let md = metadata(entry2.path()).unwrap();
+                let entry2 = match entry2 {
+                    Ok(e) => e,
+                    Err(_) => continue,
+                };
+                let md = match metadata(entry2.path()) {
+                    Ok(m) => m,
+                    Err(_) => continue,
+                };
                 if md.is_dir() {
                     folder_count += 1;
                 } else {
@@ -77,22 +80,28 @@ fn main() {
 
 
     if cli.nocolor {
-        println!("📁 Current Directory: {}", env::current_dir().unwrap().display());
+        println!("📁 Current Directory: {}", current_dir.display());
         println!("📦 Folder Size: {:.2} MB", folder_size as f64 / 1024.0 / 1024.0);
-        println!("📦 Number of entries: 📁 {} Folders, 📄 {} Files", folderCount, fileCount);
+        println!("📦 Number of entries: 📁 {} Folders, 📄 {} Files", folder_count, file_count);
         println!("📄 Files:");
     } else {
-        println!("📁 Current Directory: {}", env::current_dir().unwrap().display().to_string().magenta());
+        println!("📁 Current Directory: {}", current_dir.display().to_string().magenta());
         println!("📦 Folder Size: {:.2} MB", (folder_size as f64 / 1024.0 / 1024.0).to_string().yellow());
-        println!("📦 Number of entries: 📁 {} Folders, 📄 {} Files", folderCount.to_string().cyan(), fileCount.to_string().cyan());
+        println!("📦 Number of entries: 📁 {} Folders, 📄 {} Files", folder_count.to_string().cyan(), file_count.to_string().cyan());
         println!("📄 Files:");
     }
 
     for entry in paths {
-        let entry = entry.unwrap();
+        let entry = match entry {
+            Ok(e) => e,
+            Err(_) => continue,
+        };
         let path = entry.path();
 
-        let md = metadata(&path).unwrap();
+        let md = match metadata(&path) {
+            Ok(m) => m,
+            Err(_) => continue,
+        };
 
         if md.is_dir() {
             if cli.folder_size {
